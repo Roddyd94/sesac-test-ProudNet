@@ -1,0 +1,13 @@
+rename cs(Proud::String, System.String);
+
+global TestGame 1000
+{
+	// Send player item data from server to players
+	SendItems([in] int player_no, [in] std::vector<Item> items);
+
+	// Send player point data from server to players
+	SendPlayerInfo([in] int player_no, [in] PlayerInfo info);
+
+	// Send key input from player to server
+	Move([in] int8_t key);
+}
