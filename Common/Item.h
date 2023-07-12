@@ -1,5 +1,5 @@
 #pragma once
-#include "ProudNetCommon.h"
+#include "../../ProudNet/include/ProudNetCommon.h"
 #include <vector>
 
 class Item

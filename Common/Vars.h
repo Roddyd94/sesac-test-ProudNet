@@ -1,7 +1,9 @@
 #pragma once
-#include "ProudNetCommon.h"
+#include "../../ProudNet/include/ProudNetCommon.h"
 #include "stdafx.h"
 #include <new>
+
+#define MAX_PLAYERS 2
 
 extern Proud::Guid g_Version;
 extern int g_ServerPort;
