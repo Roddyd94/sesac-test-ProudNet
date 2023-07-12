@@ -4,10 +4,10 @@
 #include <new>
 
 #define MAX_PLAYERS 2
+#define TILE_ROW 3
+#define TILE_COL 3
+#define CENTER_X 1
+#define CENTER_Y 1
 
 extern Proud::Guid g_Version;
 extern int g_ServerPort;
-extern const int g_TileRow;
-extern const int g_TileCol;
-extern const int g_CenterX;
-extern const int g_CenterY;

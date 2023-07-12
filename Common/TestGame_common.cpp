@@ -14,9 +14,13 @@ namespace TestGame {
 		Rmi_SendPlayerInfo,
                
 		Rmi_Move,
+               
+		Rmi_WhoAmI,
+               
+		Rmi_WhoYouAre,
 	};
 
-	int g_RmiIDListCount = 3;
+	int g_RmiIDListCount = 5;
 
 }
 

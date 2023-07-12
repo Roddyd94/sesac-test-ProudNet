@@ -10,4 +10,10 @@ global TestGame 1000
 
 	// Send key input from player to server
 	Move([in] int8_t key);
+
+	// Ask my player number to server
+	WhoAmI();
+	
+	// Send player number to client
+	WhoYouAre([in] int player_no);
 }

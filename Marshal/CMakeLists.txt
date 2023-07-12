@@ -4,17 +4,16 @@ cmake_minimum_required (VERSION 3.8.0)
 include_directories("../../ProudNet/include")
 
 #Setting the name of groups of files
-file(GLOB SRC_COMMON
-		Vars.cpp
-		Vars.h
-		stdafx.cpp
-		stdafx.h)
+file(GLOB SRC_MARSHAL
+		*.cpp
+		*.h
+		*.rc)
 
 #Setting the target
-add_library(GameCommon STATIC
-			${SRC_COMMON})
-set_property(TARGET GameCommon PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../bin)
-set_property(TARGET GameCommon PROPERTY ARCHIVE_OUTPUT_NAME GameCommon)
+add_library(GameMarshal STATIC
+			${SRC_MARSHAL})
+set_property(TARGET GameMarshal PROPERTY ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/../bin)
+set_property(TARGET GameMarshal PROPERTY ARCHIVE_OUTPUT_NAME GameMarshal)
 
 #Setting about MSVC
 # if(MSVC)

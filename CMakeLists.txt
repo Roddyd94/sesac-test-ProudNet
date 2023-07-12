@@ -10,5 +10,6 @@ project ("sesac-test-ProudNet")
 
 # 하위 프로젝트
 add_subdirectory ("Common")
+add_subdirectory ("Marshal")
 add_subdirectory ("Server")
-# add_subdirectory ("Client")
+add_subdirectory ("Client")

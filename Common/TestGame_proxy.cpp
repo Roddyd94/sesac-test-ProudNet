@@ -100,6 +100,60 @@ __msg << key;
 		return RmiSend(remotes,remoteCount,rmiContext,__msg,
 			RmiName_Move, (::Proud::RmiID)Rmi_Move);
 	}
+        
+	bool Proxy::WhoAmI ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext )	{
+		::Proud::CMessage __msg;
+__msg.UseInternalBuffer();
+__msg.SetSimplePacketMode(m_core->IsSimplePacketMode());
+
+::Proud::RmiID __msgid=(::Proud::RmiID)Rmi_WhoAmI;
+__msg.Write(__msgid); 
+	
+		
+		return RmiSend(&remote,1,rmiContext,__msg,
+			RmiName_WhoAmI, (::Proud::RmiID)Rmi_WhoAmI);
+	}
+
+	bool Proxy::WhoAmI ( ::Proud::HostID *remotes, int remoteCount, ::Proud::RmiContext &rmiContext)  	{
+		::Proud::CMessage __msg;
+__msg.UseInternalBuffer();
+__msg.SetSimplePacketMode(m_core->IsSimplePacketMode());
+
+::Proud::RmiID __msgid=(::Proud::RmiID)Rmi_WhoAmI;
+__msg.Write(__msgid); 
+	
+		
+		return RmiSend(remotes,remoteCount,rmiContext,__msg,
+			RmiName_WhoAmI, (::Proud::RmiID)Rmi_WhoAmI);
+	}
+        
+	bool Proxy::WhoYouAre ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int & player_no)	{
+		::Proud::CMessage __msg;
+__msg.UseInternalBuffer();
+__msg.SetSimplePacketMode(m_core->IsSimplePacketMode());
+
+::Proud::RmiID __msgid=(::Proud::RmiID)Rmi_WhoYouAre;
+__msg.Write(__msgid); 
+	
+__msg << player_no;
+		
+		return RmiSend(&remote,1,rmiContext,__msg,
+			RmiName_WhoYouAre, (::Proud::RmiID)Rmi_WhoYouAre);
+	}
+
+	bool Proxy::WhoYouAre ( ::Proud::HostID *remotes, int remoteCount, ::Proud::RmiContext &rmiContext, const int & player_no)  	{
+		::Proud::CMessage __msg;
+__msg.UseInternalBuffer();
+__msg.SetSimplePacketMode(m_core->IsSimplePacketMode());
+
+::Proud::RmiID __msgid=(::Proud::RmiID)Rmi_WhoYouAre;
+__msg.Write(__msgid); 
+	
+__msg << player_no;
+		
+		return RmiSend(remotes,remoteCount,rmiContext,__msg,
+			RmiName_WhoYouAre, (::Proud::RmiID)Rmi_WhoYouAre);
+	}
 #ifdef USE_RMI_NAME_STRING
 const PNTCHAR* Proxy::RmiName_SendItems =_PNT("SendItems");
 #else
@@ -114,6 +168,16 @@ const PNTCHAR* Proxy::RmiName_SendPlayerInfo =_PNT("");
 const PNTCHAR* Proxy::RmiName_Move =_PNT("Move");
 #else
 const PNTCHAR* Proxy::RmiName_Move =_PNT("");
+#endif
+#ifdef USE_RMI_NAME_STRING
+const PNTCHAR* Proxy::RmiName_WhoAmI =_PNT("WhoAmI");
+#else
+const PNTCHAR* Proxy::RmiName_WhoAmI =_PNT("");
+#endif
+#ifdef USE_RMI_NAME_STRING
+const PNTCHAR* Proxy::RmiName_WhoYouAre =_PNT("WhoYouAre");
+#else
+const PNTCHAR* Proxy::RmiName_WhoYouAre =_PNT("");
 #endif
 const PNTCHAR* Proxy::RmiName_First = RmiName_SendItems;
 

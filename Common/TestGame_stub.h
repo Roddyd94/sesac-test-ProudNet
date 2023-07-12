@@ -50,11 +50,33 @@ namespace TestGame {
 #define DEFRMI_TestGame_Move(DerivedClass) bool DerivedClass::Move ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int8_t & key)
 #define CALL_TestGame_Move Move ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int8_t & key)
 #define PARAM_TestGame_Move ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int8_t & key)
+               
+		virtual bool WhoAmI ( ::Proud::HostID, ::Proud::RmiContext& )		{ 
+			return false;
+		} 
+
+#define DECRMI_TestGame_WhoAmI bool WhoAmI ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext ) PN_OVERRIDE
+
+#define DEFRMI_TestGame_WhoAmI(DerivedClass) bool DerivedClass::WhoAmI ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext )
+#define CALL_TestGame_WhoAmI WhoAmI ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext )
+#define PARAM_TestGame_WhoAmI ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext )
+               
+		virtual bool WhoYouAre ( ::Proud::HostID, ::Proud::RmiContext& , const int & )		{ 
+			return false;
+		} 
+
+#define DECRMI_TestGame_WhoYouAre bool WhoYouAre ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int & player_no) PN_OVERRIDE
+
+#define DEFRMI_TestGame_WhoYouAre(DerivedClass) bool DerivedClass::WhoYouAre ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int & player_no)
+#define CALL_TestGame_WhoYouAre WhoYouAre ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int & player_no)
+#define PARAM_TestGame_WhoYouAre ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int & player_no)
  
 		virtual bool ProcessReceivedMessage(::Proud::CReceivedMessage &pa, void* hostTag) PN_OVERRIDE;
 		static const PNTCHAR* RmiName_SendItems;
 		static const PNTCHAR* RmiName_SendPlayerInfo;
 		static const PNTCHAR* RmiName_Move;
+		static const PNTCHAR* RmiName_WhoAmI;
+		static const PNTCHAR* RmiName_WhoYouAre;
 		static const PNTCHAR* RmiName_First;
 		virtual ::Proud::RmiID* GetRmiIDList() PN_OVERRIDE { return g_RmiIDList; }
 		virtual int GetRmiIDListCount() PN_OVERRIDE { return g_RmiIDListCount; }
@@ -90,6 +112,24 @@ namespace TestGame {
 			if (Move_Function==nullptr) 
 				return true; 
 			return Move_Function(remote,rmiContext, key); 
+		}
+
+               
+		std::function< bool ( ::Proud::HostID, ::Proud::RmiContext& ) > WhoAmI_Function;
+		virtual bool WhoAmI ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext ) 
+		{ 
+			if (WhoAmI_Function==nullptr) 
+				return true; 
+			return WhoAmI_Function(remote,rmiContext); 
+		}
+
+               
+		std::function< bool ( ::Proud::HostID, ::Proud::RmiContext& , const int & ) > WhoYouAre_Function;
+		virtual bool WhoYouAre ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int & player_no) 
+		{ 
+			if (WhoYouAre_Function==nullptr) 
+				return true; 
+			return WhoYouAre_Function(remote,rmiContext, player_no); 
 		}
 
 	};

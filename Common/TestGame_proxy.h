@@ -23,9 +23,15 @@ namespace TestGame {
 	virtual bool SendPlayerInfo ( ::Proud::HostID *remotes, int remoteCount, ::Proud::RmiContext &rmiContext, const int & player_no, const PlayerInfo & info)   PN_SEALED;  
 	virtual bool Move ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int8_t & key) PN_SEALED; 
 	virtual bool Move ( ::Proud::HostID *remotes, int remoteCount, ::Proud::RmiContext &rmiContext, const int8_t & key)   PN_SEALED;  
+	virtual bool WhoAmI ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext ) PN_SEALED; 
+	virtual bool WhoAmI ( ::Proud::HostID *remotes, int remoteCount, ::Proud::RmiContext &rmiContext)   PN_SEALED;  
+	virtual bool WhoYouAre ( ::Proud::HostID remote, ::Proud::RmiContext& rmiContext , const int & player_no) PN_SEALED; 
+	virtual bool WhoYouAre ( ::Proud::HostID *remotes, int remoteCount, ::Proud::RmiContext &rmiContext, const int & player_no)   PN_SEALED;  
 static const PNTCHAR* RmiName_SendItems;
 static const PNTCHAR* RmiName_SendPlayerInfo;
 static const PNTCHAR* RmiName_Move;
+static const PNTCHAR* RmiName_WhoAmI;
+static const PNTCHAR* RmiName_WhoYouAre;
 static const PNTCHAR* RmiName_First;
 		Proxy()
 		{
