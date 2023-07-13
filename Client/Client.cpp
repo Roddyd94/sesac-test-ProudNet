@@ -54,12 +54,12 @@ int main(int argc, char *argv[]) {
 
   // set a routine which is run when the server connection attempt
   // is success or failed.
-  netClient->OnJoinServerComplete = [&](ErrorInfo *player,
+  netClient->OnJoinServerComplete = [&](ErrorInfo *info,
                                         const ByteArray &replyFromServer) {
     // as here is running in 2nd thread, lock is needed for console print.
     CriticalSectionLock lock(g_critSec, true);
 
-    if (player->m_errorType == ErrorType_Ok) {
+    if (info->m_errorType == ErrorType_Ok) {
       // connection successful.
       printf("Succeed to connect server. Allocated hostID=%d\n",
              netClient->GetLocalHostID());
