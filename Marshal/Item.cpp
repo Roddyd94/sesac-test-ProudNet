@@ -7,6 +7,11 @@ Item::Item(int x, int y) : Item(Item::ItemType::COIN, 1, x, y) {}
 Item::Item(Item::ItemType type, uint32_t scale, int x, int y)
     : type(type), scale(scale), pos_x(x), pos_y(y) {}
 
+bool operator<(const Item &l, const Item &r) {
+  if (l.pos_x == r.pos_x)
+    return l.pos_y < r.pos_y;
+  return l.pos_x < r.pos_x;
+}
 namespace Proud {
 inline CMessage &operator>>(CMessage &m, Item &item) {
   int8_t temp_type;
@@ -22,29 +27,26 @@ inline CMessage &operator<<(CMessage &m, const Item &item) {
   return m;
 }
 
-inline CMessage &operator>>(CMessage &m, std::vector<Item> &items) {
+inline CMessage &operator>>(CMessage &m, std::set<Item> &item_set) {
   int size;
   m >> size;
 
   if (size < 0 || size >= CNetConfig::MessageMaxLength)
     ThrowExceptionOnReadArray(size);
 
-  items.reserve(size);
-  items.resize(0);
-
   Item item;
   for (int i = 0; i < size; i++) {
     m >> item;
-    items.push_back(item);
+    item_set.insert(item);
   }
   return m;
 }
 
-inline CMessage &operator<<(CMessage &m, const std::vector<Item> &items) {
-  int size = (int)items.size();
+inline CMessage &operator<<(CMessage &m, const std::set<Item> &item_set) {
+  int size = (int)item_set.size();
   m << size;
 
-  for (std::vector<Item>::const_iterator i = items.begin(); i != items.end();
+  for (std::set<Item>::iterator i = item_set.begin(); i != item_set.end();
        i++) {
     m << (*i);
   }
@@ -58,7 +60,7 @@ inline void AppendTextOut(String &s, const Item &item) {
   s += f;
 }
 
-inline void AppendTextOut(String &s, const std::vector<Item> &items) {
-  s += L"<vector>";
+inline void AppendTextOut(String &s, const std::set<Item> &items) {
+  s += L"<set>";
 }
 } // namespace Proud

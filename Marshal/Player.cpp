@@ -53,22 +53,22 @@ void Player::MoveToward(int8_t key) {
   case 'W':
   case 'w':
     if (pos_y + 1 != TILE_ROW)
-      pos_x++;
+      pos_y++;
     break;
   case 'S':
   case 's':
     if (pos_y != 0)
-      pos_x--;
+      pos_y--;
     break;
   case 'A':
   case 'a':
     if (pos_x != 0)
-      pos_y--;
+      pos_x--;
     break;
   case 'D':
   case 'd':
     if (pos_x + 1 != TILE_COL)
-      pos_y++;
+      pos_x++;
     break;
   }
 }

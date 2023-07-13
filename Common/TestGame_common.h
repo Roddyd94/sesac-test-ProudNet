@@ -9,7 +9,7 @@ namespace TestGame {
 
 // Message ID that replies to each RMI method.
 
-static const ::Proud::RmiID Rmi_SendItems = (::Proud::RmiID)(1000 + 1);
+static const ::Proud::RmiID Rmi_SendItemSet = (::Proud::RmiID)(1000 + 1);
 
 static const ::Proud::RmiID Rmi_SendPlayer = (::Proud::RmiID)(1000 + 2);
 

@@ -39,9 +39,9 @@ int main(int argc, char *argv[]) {
       };
 
   // 서버 아이템 정보 전송 이벤트 처리 함수
-  g_GameStub.SendItems_Function =
-      [&client_game_manager] PARAM_TestGame_SendItems {
-        for (auto i = items.begin(); i != items.end(); ++i) {
+  g_GameStub.SendItemSet_Function =
+      [&client_game_manager] PARAM_TestGame_SendItemSet {
+        for (auto i = item_set.begin(); i != item_set.end(); ++i) {
           client_game_manager.map_array[player_nth][i->pos_x][i->pos_y] = '$';
         }
         return true;
@@ -126,7 +126,6 @@ int main(int argc, char *argv[]) {
   // in another thread or your timer callback routine.
   Proud::Thread workerThread([&]() {
     while (keepWorkerThread) {
-      system("cls");
       client_ui.PrintGame(client_game_manager);
       Proud::Sleep(20);
 
@@ -139,7 +138,6 @@ int main(int argc, char *argv[]) {
 
   while (keepWorkerThread) {
     bool pressed_right_key = false;
-    cout << "thread test";
     int key;
     // get user input
 #ifdef _WIN32

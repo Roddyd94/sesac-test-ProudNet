@@ -18,6 +18,7 @@ public:
   ClientUI &operator=(ClientUI &&) = delete;
 
   void PrintGame(const ClientGameManager &game_manager);
+  void ResetGameScreen();
 
 protected:
   ClientUI();

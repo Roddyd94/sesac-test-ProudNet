@@ -15,7 +15,7 @@ bool game_started = false;
 set<int> set_player;
 map<HostID, int> map_HostID_player;
 map<int, Player> map_player_Player;
-map<int, vector<Item>> map_player_Items;
+map<int, set<Item>> map_player_Items;
 
 int main(int argc, char *argv[]) {
   // 랜덤 시드 세팅
@@ -37,45 +37,67 @@ int main(int argc, char *argv[]) {
   };
   // 클라이언트 이동 동작 이벤트 처리 함수
   g_GameStub.Move_Function = [&srv] PARAM_TestGame_Move {
+    cout << "Move():\n";
     // 게임 참여 확인
     if (map_HostID_player.find(remote) == map_HostID_player.end())
       return true;
     int player_nth = map_HostID_player[remote];
+    cout << "호스트 참여 확인\n";
 
     // 게임 중인지 확인
     if (!game_started)
       return true;
+    cout << "게임 시작 확인\n";
 
     // 플레이어 이동 확인
-    if (!map_player_Player[player_nth].IsMovable(key))
+    Player &player = map_player_Player[player_nth];
+    if (!player.IsMovable(key))
       return true;
+    cout << "플레이어 이동 가능성 확인\n";
 
-    map_player_Player[player_nth].MoveToward(key);
+    player.MoveToward(key);
+    cout << "플레이어 이동\n";
 
     cout << "Player " << player_nth << " moved " << (char)key << " side!"
-         << '\n';
+         << "and now at [" << player.pos_x << "," << player.pos_y << "]\n";
 
     // 이동 처리 및 아이템, 점수 갱신
-    vector<Item> player_items = map_player_Items[player_nth];
-    Player player_player = map_player_Player[player_nth];
-    for (vector<Item>::iterator i = player_items.begin();
-         i != player_items.end(); ++i) {
+    bool got_item = false;
+    set<Item> &player_items = map_player_Items[player_nth];
+    Player &player_player = map_player_Player[player_nth];
+    for (set<Item>::iterator i = player_items.begin(); i != player_items.end();
+         ++i) {
+      cout << "Item located at " << i->pos_x << ", " << i->pos_y << "\n";
       if (i->pos_x != player_player.pos_x || i->pos_y != player_player.pos_y)
         continue;
+      cout << "Player " << player_nth << " get item located at " << i->pos_x
+           << ", " << i->pos_y << "\n";
       player_items.erase(i);
       player_player.AddPoint();
+      got_item = true;
+      cout << "Player's point is now " << player_player.points << "\n";
       break;
     }
 
+    // 그룹 내 플레이어에게 업데이트 정보 전송
+    g_GameProxy.SendPlayer(g_groupHostID, RmiContext::FastEncryptedReliableSend,
+                           player_nth, player_player);
+
+    // 현재 플레이어가 아이템을 먹었는지 확인
+    if (got_item)
+      return true;
     // 다른 플레이어에게 코인 전달, 가능하면 함수로 분리
     // 코인을 받을 다음 플레이어 선정
-    int next_player = rand() % (set_player.size() - 1);
-    // 현재 플레이어에게 코인이 가지 않도록
-    if (next_player >= player_nth)
-      next_player++;
+    int next_player;
+    do {
+      next_player = rand() % (set_player.size() - 1);
+      // 현재 플레이어에게 코인이 가지 않도록
+      if (next_player >= player_nth)
+        next_player++;
+    } while (map_player_Items[next_player].size() >= TILE_COL * TILE_ROW - 1);
     // 다음 플레이어 정보
-    vector<Item> next_player_items = map_player_Items[next_player];
-    Player next_player_player = map_player_Player[next_player];
+    set<Item> &next_player_items = map_player_Items[next_player];
+    Player &next_player_player = map_player_Player[next_player];
     // 다음 코인 위치
     int next_coin_x, next_coin_y;
     do {
@@ -84,15 +106,15 @@ int main(int argc, char *argv[]) {
     } while (next_player_player.pos_x == next_coin_x &&
              next_player_player.pos_y == next_coin_y);
     // 코인 생성
-    next_player_items.push_back(Item(next_coin_x, next_coin_y));
+    next_player_items.insert(Item(next_coin_x, next_coin_y));
 
     // 그룹 내 플레이어에게 업데이트 정보 전송
-    g_GameProxy.SendPlayer(g_groupHostID, RmiContext::FastEncryptedReliableSend,
-                           player_nth, player_player);
-    g_GameProxy.SendItems(g_groupHostID, RmiContext::FastEncryptedReliableSend,
-                          player_nth, player_items);
-    g_GameProxy.SendItems(g_groupHostID, RmiContext::FastEncryptedReliableSend,
-                          next_player, next_player_items);
+    g_GameProxy.SendItemSet(g_groupHostID,
+                            RmiContext::FastEncryptedReliableSend, player_nth,
+                            player_items);
+    g_GameProxy.SendItemSet(g_groupHostID,
+                            RmiContext::FastEncryptedReliableSend, next_player,
+                            next_player_items);
 
     return true;
   };
@@ -127,8 +149,8 @@ int main(int argc, char *argv[]) {
     // 플레이어 정보 등록, 게임 관리자 클래스로 분리 필요
     set_player.insert(player_nth);
     map_HostID_player[remote] = player_nth;
-    map_player_Items.insert({player_nth, vector<Item>()});
-    map_player_Player.insert({player_nth, Player()});
+    map_player_Items.insert({player_nth, set<Item>()});
+    map_player_Player.insert({player_nth, Player(player_nth)});
 
     cout << "Player " << player_nth << "["
          << map_player_Player[player_nth].pos_x << ','
@@ -137,7 +159,10 @@ int main(int argc, char *argv[]) {
     // 플레이어 2명 이상 시 게임 시작
     if (set_player.size() >= 2) {
       game_started = true;
-      map_player_Items[0].push_back(Item(0, 0));
+      map_player_Items[0].insert(Item(0, 0));
+      g_GameProxy.SendItemSet(g_groupHostID,
+                              RmiContext::FastEncryptedReliableSend, 0,
+                              map_player_Items[0]);
       cout << "game started!\n";
     }
   };
@@ -166,7 +191,7 @@ int main(int argc, char *argv[]) {
       // 기존 플레이어 정보 초기화
       for (set<int>::const_iterator i = set_player.begin();
            i != set_player.end(); ++i) {
-        map_player_Items[player_nth] = vector<Item>();
+        map_player_Items[player_nth] = set<Item>();
         map_player_Player[player_nth] = Player();
       }
     }
@@ -174,9 +199,9 @@ int main(int argc, char *argv[]) {
     // 모든 플레이어에게 정보 전송
     for (set<int>::const_iterator i = set_player.begin(); i != set_player.end();
          ++i) {
-      g_GameProxy.SendItems(g_groupHostID,
-                            RmiContext::FastEncryptedReliableSend, *i,
-                            map_player_Items[*i]);
+      g_GameProxy.SendItemSet(g_groupHostID,
+                              RmiContext::FastEncryptedReliableSend, *i,
+                              map_player_Items[*i]);
       g_GameProxy.SendPlayer(g_groupHostID,
                              RmiContext::FastEncryptedReliableSend, *i,
                              map_player_Player[*i]);

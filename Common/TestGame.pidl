@@ -3,10 +3,10 @@ rename cs(Proud::String, System.String);
 global TestGame 1000
 {
 	// Send player item data from server to players
-	SendItems([in] int player_no, [in] std::vector<Item> itemArray);
+	SendItemSet([in] int player_nth, [in] std::set<Item> item_set);
 
 	// Send player point data from server to players
-	SendPlayerInfo([in] int player_no, [in] Player player);
+	SendPlayer([in] int player_nth, [in] Player player);
 
 	// Send key input from player to server
 	Move([in] int8_t key);
@@ -15,5 +15,5 @@ global TestGame 1000
 	WhoAmI();
 	
 	// Send player number to client
-	WhoYouAre([in] int player_no);
+	WhoYouAre([in] int player_nth);
 }

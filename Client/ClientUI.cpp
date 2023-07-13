@@ -10,6 +10,7 @@ ClientUI &ClientUI::get_instance() {
 }
 
 void ClientUI::PrintGame(const ClientGameManager &game_manager) {
+  SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), COORD{0, 0});
   for (int player_nth = 0; player_nth < MAX_PLAYERS; ++player_nth) {
     ClientPlayer player = game_manager.player_array[player_nth];
     string s;
@@ -27,3 +28,4 @@ void ClientUI::PrintGame(const ClientGameManager &game_manager) {
     buffer << '\n';
   }
 }
+void ClientUI::ResetGameScreen() { system("cls"); }
