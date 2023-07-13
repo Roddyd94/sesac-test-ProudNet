@@ -22,10 +22,10 @@ int main(int argc, char *argv[]) {
   srand(time(nullptr));
 
   // 서버 인스턴스 생성
-  shared_ptr<CNetServer> srv(CNetServer::Create());
+  shared_ptr<CNetServer> server(CNetServer::Create());
 
   // 클라이언트 이동 동작 이벤트 처리 함수
-  g_GameStub.WhoAmI_Function = [&srv] PARAM_TestGame_WhoAmI {
+  g_GameStub.WhoAmI_Function = [&server] PARAM_TestGame_WhoAmI {
     int player_nth = map_HostID_player[remote];
     g_GameProxy.WhoYouAre(remote, RmiContext::FastEncryptedReliableSend,
                           player_nth);
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     return true;
   };
   // 클라이언트 이동 동작 이벤트 처리 함수
-  g_GameStub.Move_Function = [&srv] PARAM_TestGame_Move {
+  g_GameStub.Move_Function = [&server] PARAM_TestGame_Move {
     cout << "Move():\n";
     // 게임 참여 확인
     if (map_HostID_player.find(remote) == map_HostID_player.end())
@@ -56,32 +56,31 @@ int main(int argc, char *argv[]) {
     cout << "플레이어 이동\n";
 
     cout << "Player " << player_nth << " moved " << (char)key << " side!"
-         << "and now at [" << player.pos_x << "," << player.pos_y << "]\n";
+         << " and now at [" << player.pos_x << "," << player.pos_y << "]\n";
 
     // 이동 처리 및 아이템, 점수 갱신
     bool got_item = false;
     set<Item> &player_items = map_player_Items[player_nth];
-    Player &player_player = map_player_Player[player_nth];
     for (set<Item>::iterator i = player_items.begin(); i != player_items.end();
          ++i) {
       cout << "Item located at " << i->pos_x << ", " << i->pos_y << "\n";
-      if (i->pos_x != player_player.pos_x || i->pos_y != player_player.pos_y)
+      if (i->pos_x != player.pos_x || i->pos_y != player.pos_y)
         continue;
       cout << "Player " << player_nth << " get item located at " << i->pos_x
            << ", " << i->pos_y << "\n";
       player_items.erase(i);
-      player_player.AddPoint();
+      player.AddPoint();
       got_item = true;
-      cout << "Player's point is now " << player_player.points << "\n";
+      cout << "Player's point is now " << player.points << "\n";
       break;
     }
 
     // 그룹 내 플레이어에게 업데이트 정보 전송
     g_GameProxy.SendPlayer(g_groupHostID, RmiContext::FastEncryptedReliableSend,
-                           player_nth, player_player);
+                           player_nth, player);
 
     // 현재 플레이어가 아이템을 먹었는지 확인
-    if (got_item)
+    if (!got_item)
       return true;
     // 다른 플레이어에게 코인 전달, 가능하면 함수로 분리
     // 코인을 받을 다음 플레이어 선정
@@ -118,18 +117,18 @@ int main(int argc, char *argv[]) {
 
   // set a routine which is executed when a client is joining.
   // clientInfo has the client player including its HostID.
-  srv->OnClientJoin = [&srv](CNetClientInfo *clientInfo) {
+  server->OnClientJoin = [&server](CNetClientInfo *clientInfo) {
     HostID remote = clientInfo->m_HostID;
 
     // 게임 참여 인원 확인
     if (set_player.size() >= MAX_PLAYERS) {
-      srv->CloseConnection(remote);
+      server->CloseConnection(remote);
       cout << "Players full, Bye~ PlayerID " << (int)remote << '\n';
       return;
     }
 
     // p2p 그룹에 추가
-    srv->JoinP2PGroup(remote, g_groupHostID);
+    server->JoinP2PGroup(remote, g_groupHostID);
     cout << "PlayerID " << (int)remote << " joined group " << (int)g_groupHostID
          << '\n';
 
@@ -164,19 +163,20 @@ int main(int argc, char *argv[]) {
       g_GameProxy.SendItemSet(g_groupHostID,
                               RmiContext::FastEncryptedReliableSend, 0,
                               map_player_Items[0]);
-      srv->JoinP2PGroup(HostID_Server, g_groupHostID);
+      server->JoinP2PGroup(HostID_Server, g_groupHostID);
 
       cout << "game started!\n";
     }
   };
 
   // set a routine for client leave event.
-  srv->OnClientLeave = [&srv](CNetClientInfo *clientInfo, ErrorInfo *errorInfo,
-                              const ByteArray &comment) {
+  server->OnClientLeave = [&server](CNetClientInfo *clientInfo,
+                                    ErrorInfo *errorInfo,
+                                    const ByteArray &comment) {
     HostID remote = clientInfo->m_HostID;
 
     // p2p 그룹에서 삭제
-    srv->LeaveP2PGroup(remote, g_groupHostID);
+    server->LeaveP2PGroup(remote, g_groupHostID);
     cout << "PlayerID " << (int)remote << " leaved group " << (int)g_groupHostID
          << '\n';
 
@@ -215,8 +215,8 @@ int main(int argc, char *argv[]) {
   };
 
   // Associate RMI proxy and stub instances to network object.
-  srv->AttachProxy(&g_GameProxy);
-  srv->AttachStub(&g_GameStub);
+  server->AttachProxy(&g_GameProxy);
+  server->AttachStub(&g_GameStub);
 
   CStartServerParameter p1;
   p1.m_protocolVersion = g_Version; // This must be the same to the client.
@@ -225,54 +225,19 @@ int main(int argc, char *argv[]) {
 
   ErrorInfoPtr err;
   try {
-    /* Starts the server.
-    This function throws an exception on failure.
-    Note: As we specify nothing for threading model,
-    RMI function by message receive and event callbacks are
-    called in a separate thread pool.
-    You can change the thread model. Check out the help pages for details. */
-    srv->Start(p1);
+    server->Start(p1);
   } catch (Exception &e) {
     cout << "Server start failed: " << e.what() << endl;
     return 0;
   }
 
   // 게임 그룹 생성, 나중에 매치메이킹 클래스로 분리
-  g_groupHostID = srv->CreateP2PGroup();
+  g_groupHostID = server->CreateP2PGroup();
 
   while (true) {
     // get user input
     string userInput;
     cin >> userInput;
-
-    // if ( userInput == "1" )
-    // {
-    // 	// get all client HostID array.
-    // 	vector<HostID> clients;
-    // 	int noofClients = srv->GetClientCount();
-    // 	clients.resize(noofClients);
-    // 	int listCount = srv->GetClientHostIDs(&clients[0], noofClients);
-
-    // 	// create a P2P group where all clients are in.
-    // 	g_groupHostID = srv->CreateP2PGroup(&clients[0], clients.size());
-    // }
-    // else if (userInput == "2")
-    // {
-    // 	// send an RMI message to every client.
-    // 	g_SimpleProxy.SystemChat(g_groupHostID, RmiContext::ReliableSend,
-    // _PNT("Hello~~~!"));
-    // }
-    // else if (userInput == "3")
-    // {
-    // 	// destroy the P2P group.
-    // 	srv->DestroyP2PGroup(g_groupHostID);
-    // 	g_groupHostID = HostID_None;
-    // }
-    // else if (userInput == "q")
-    // {
-    // 	// exit program.
-    // 	break;
-    // }
   }
 
   return 0;
