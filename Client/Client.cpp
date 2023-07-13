@@ -42,7 +42,6 @@ int main(int argc, char *argv[]) {
   g_GameStub.SendItemSet_Function =
       [&client_game_manager] PARAM_TestGame_SendItemSet {
         client_game_manager.item_set_array[player_nth] = item_set;
-        cout << client_game_manager.item_set_array[0].size();
         return true;
       };
 
@@ -50,7 +49,6 @@ int main(int argc, char *argv[]) {
   g_GameStub.SendPlayer_Function =
       [&client_game_manager] PARAM_TestGame_SendPlayer {
         client_game_manager.player_array[player_nth] = player;
-        cout << client_game_manager.player_array[player_nth].pos_x;
         return true;
       };
 
@@ -83,6 +81,10 @@ int main(int argc, char *argv[]) {
     isConnected = false;
     keepWorkerThread = false;
   };
+
+  netClient->OnP2PMemberJoin = [&](HostID memberHostID, HostID groupHostID,
+                                   int memberCount,
+                                   const ByteArray &customField) {};
 
   // attach RMI proxy and stub to client object.
   netClient->AttachProxy(&g_GameProxy);
@@ -148,7 +150,7 @@ int main(int argc, char *argv[]) {
     cout << "unix test";
 
 #elif __linux__
-    cout << "unix test";
+    cout << "linux test";
 
 #elif __APPLE__
 

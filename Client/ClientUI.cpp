@@ -17,7 +17,7 @@ void ClientUI::PrintGame(const ClientGameManager &game_manager) {
     buffer << "[" << (char)(game_manager.my_nth == player_nth ? '*' : ' ')
            << "]Player " << player_nth + 1 << ":" << player.points;
 
-    for (int y = 0; y < TILE_ROW; ++y) {
+    for (int y = TILE_ROW - 1; y >= 0; --y) {
       buffer << '\n';
       for (int x = 0; x < TILE_COL; ++x) {
         buffer << "[ " << game_manager.get_map_icon_at(player_nth, x, y)

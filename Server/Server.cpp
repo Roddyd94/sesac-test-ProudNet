@@ -24,9 +24,6 @@ int main(int argc, char *argv[]) {
   // 서버 인스턴스 생성
   shared_ptr<CNetServer> srv(CNetServer::Create());
 
-  // 게임 그룹 생성, 나중에 매치메이킹 클래스로 분리
-  g_groupHostID = srv->CreateP2PGroup();
-
   // 클라이언트 이동 동작 이벤트 처리 함수
   g_GameStub.WhoAmI_Function = [&srv] PARAM_TestGame_WhoAmI {
     int player_nth = map_HostID_player[remote];
@@ -167,6 +164,8 @@ int main(int argc, char *argv[]) {
       g_GameProxy.SendItemSet(g_groupHostID,
                               RmiContext::FastEncryptedReliableSend, 0,
                               map_player_Items[0]);
+      srv->JoinP2PGroup(HostID_Server, g_groupHostID);
+
       cout << "game started!\n";
     }
   };
@@ -181,6 +180,9 @@ int main(int argc, char *argv[]) {
     cout << "PlayerID " << (int)remote << " leaved group " << (int)g_groupHostID
          << '\n';
 
+    // 플레이어 정보 삭제
+    if (map_HostID_player.find(remote) == map_HostID_player.end())
+      return true;
     // 플레이어 정보 삭제
     int player_nth = map_HostID_player[remote];
     set_player.erase(player_nth);
@@ -213,12 +215,13 @@ int main(int argc, char *argv[]) {
   };
 
   // Associate RMI proxy and stub instances to network object.
-  srv->AttachStub(&g_GameStub);
   srv->AttachProxy(&g_GameProxy);
+  srv->AttachStub(&g_GameStub);
 
   CStartServerParameter p1;
   p1.m_protocolVersion = g_Version; // This must be the same to the client.
   p1.m_tcpPorts.Add(g_ServerPort);  // TCP listening endpoint
+  p1.m_allowServerAsP2PGroupMember = true; // TCP listening endpoint
 
   ErrorInfoPtr err;
   try {
@@ -233,6 +236,9 @@ int main(int argc, char *argv[]) {
     cout << "Server start failed: " << e.what() << endl;
     return 0;
   }
+
+  // 게임 그룹 생성, 나중에 매치메이킹 클래스로 분리
+  g_groupHostID = srv->CreateP2PGroup();
 
   while (true) {
     // get user input
