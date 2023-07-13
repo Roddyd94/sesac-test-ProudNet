@@ -1,14 +1,14 @@
 #pragma once
 #include "../Common/Vars.h"
 #include "../Marshal/Item.h"
-#include "ClientPlayer.h"
+#include "../Marshal/Player.h"
 #include "stdafx.h"
 
 class ClientGameManager {
 public:
   // 내 플레이어 번호
   int my_nth;
-  ClientPlayer player_array[MAX_PLAYERS];
+  Player player_array[MAX_PLAYERS];
   std::set<Item> item_set_array[MAX_PLAYERS];
 
   static ClientGameManager &get_instance();

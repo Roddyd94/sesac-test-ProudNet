@@ -12,7 +12,7 @@ ClientUI &ClientUI::get_instance() {
 void ClientUI::PrintGame(const ClientGameManager &game_manager) {
   SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), COORD{0, 0});
   for (int player_nth = 0; player_nth < MAX_PLAYERS; ++player_nth) {
-    ClientPlayer player = game_manager.player_array[player_nth];
+    Player player = game_manager.player_array[player_nth];
     string s;
     buffer << "[" << (char)(game_manager.my_nth == player_nth ? '*' : ' ')
            << "]Player " << player_nth + 1 << ":" << player.points;

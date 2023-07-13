@@ -42,21 +42,15 @@ int main(int argc, char *argv[]) {
   g_GameStub.SendItemSet_Function =
       [&client_game_manager] PARAM_TestGame_SendItemSet {
         client_game_manager.item_set_array[player_nth] = item_set;
+        cout << client_game_manager.item_set_array[0].size();
         return true;
       };
 
   // 서버 플레이어 정보 전송 이벤트 처리 함수
   g_GameStub.SendPlayer_Function =
       [&client_game_manager] PARAM_TestGame_SendPlayer {
-        ClientPlayer updated_player =
-            client_game_manager.player_array[player_nth];
-
-        // 점수
-        updated_player = player;
-
-        updated_player.last_x = player.pos_x;
-        updated_player.last_y = player.pos_y;
-
+        client_game_manager.player_array[player_nth] = player;
+        cout << client_game_manager.player_array[player_nth].pos_x;
         return true;
       };
 

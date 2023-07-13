@@ -139,6 +139,10 @@ int main(int argc, char *argv[]) {
     // 플레이어 번호 부여(0부터!), 게임 관리자 클래스로 분리 필요
     int player_nth = -1;
     for (int i = 0; i < MAX_PLAYERS; ++i) {
+      if (!set_player.size()) {
+        player_nth = 0;
+        continue;
+      }
       if (set_player.find(i) != set_player.end())
         continue;
       player_nth = i;
@@ -180,9 +184,9 @@ int main(int argc, char *argv[]) {
     // 플레이어 정보 삭제
     int player_nth = map_HostID_player[remote];
     set_player.erase(player_nth);
-    map_HostID_player.erase(remote);
     map_player_Items.erase(player_nth);
     map_player_Player.erase(player_nth);
+    map_HostID_player.erase(remote);
 
     // 플레이어 2명 미만 시 게임 종료
     if (set_player.size() < 2) {
