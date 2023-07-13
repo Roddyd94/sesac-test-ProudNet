@@ -2,8 +2,8 @@
 #include "../../ProudNet/include/ProudNetCommon.h"
 #include "../Marshal/Item.cpp"
 #include "../Marshal/Item.h"
-#include "../Marshal/PlayerInfo.cpp"
-#include "../Marshal/PlayerInfo.h"
+#include "../Marshal/Player.cpp"
+#include "../Marshal/Player.h"
 
 namespace TestGame {
 
@@ -11,7 +11,7 @@ namespace TestGame {
 
 static const ::Proud::RmiID Rmi_SendItems = (::Proud::RmiID)(1000 + 1);
 
-static const ::Proud::RmiID Rmi_SendPlayerInfo = (::Proud::RmiID)(1000 + 2);
+static const ::Proud::RmiID Rmi_SendPlayer = (::Proud::RmiID)(1000 + 2);
 
 static const ::Proud::RmiID Rmi_Move = (::Proud::RmiID)(1000 + 3);
 

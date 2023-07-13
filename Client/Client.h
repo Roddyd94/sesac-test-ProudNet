@@ -10,6 +10,8 @@ using namespace Proud;
 #include "../Common/TestGame_proxy.cpp"
 #include "../Common/TestGame_stub.cpp"
 #include "../Common/Vars.h"
+#include "ClientGameManager.h"
+#include "ClientUI.h"
 
 #ifdef _WIN32
 #include "Windows.h"

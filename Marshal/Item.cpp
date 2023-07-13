@@ -1,11 +1,11 @@
 #include "Item.h"
 
+Item::Item() : Item(0, 0) {}
+
+Item::Item(int x, int y) : Item(Item::ItemType::COIN, 1, x, y) {}
+
 Item::Item(Item::ItemType type, uint32_t scale, int x, int y)
     : type(type), scale(scale), pos_x(x), pos_y(y) {}
-
-Item::Item(int x, int y) : Item(Item::ItemType::COIN, 0, x, y) {}
-
-Item::Item() : Item(0, 0) {}
 
 namespace Proud {
 inline CMessage &operator>>(CMessage &m, Item &item) {

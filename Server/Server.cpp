@@ -14,7 +14,7 @@ HostID g_groupHostID;
 bool game_started = false;
 set<int> set_player;
 map<HostID, int> map_HostID_player;
-map<int, PlayerInfo> map_player_PlayerInfo;
+map<int, Player> map_player_Player;
 map<int, vector<Item>> map_player_Items;
 
 int main(int argc, char *argv[]) {
@@ -29,9 +29,10 @@ int main(int argc, char *argv[]) {
 
   // 클라이언트 이동 동작 이벤트 처리 함수
   g_GameStub.WhoAmI_Function = [&srv] PARAM_TestGame_WhoAmI {
-    int player_no = map_HostID_player[remote];
+    int player_nth = map_HostID_player[remote];
     g_GameProxy.WhoYouAre(remote, RmiContext::FastEncryptedReliableSend,
-                          player_no);
+                          player_nth);
+    cout << "You are Player " << player_nth << ", " << (int)remote << '\n';
     return true;
   };
   // 클라이언트 이동 동작 이벤트 처리 함수
@@ -39,26 +40,30 @@ int main(int argc, char *argv[]) {
     // 게임 참여 확인
     if (map_HostID_player.find(remote) == map_HostID_player.end())
       return true;
-    int player_no = map_HostID_player[remote];
+    int player_nth = map_HostID_player[remote];
 
     // 게임 중인지 확인
     if (!game_started)
       return true;
 
     // 플레이어 이동 확인
-    bool player_moved = map_player_PlayerInfo[player_no].SetPosition(key);
-    if (!player_moved)
+    if (!map_player_Player[player_nth].IsMovable(key))
       return true;
 
+    map_player_Player[player_nth].MoveToward(key);
+
+    cout << "Player " << player_nth << " moved " << (char)key << " side!"
+         << '\n';
+
     // 이동 처리 및 아이템, 점수 갱신
-    vector<Item> player_items = map_player_Items[player_no];
-    PlayerInfo player_info = map_player_PlayerInfo[player_no];
+    vector<Item> player_items = map_player_Items[player_nth];
+    Player player_player = map_player_Player[player_nth];
     for (vector<Item>::iterator i = player_items.begin();
          i != player_items.end(); ++i) {
-      if (i->pos_x != player_info.pos_x || i->pos_y != player_info.pos_y)
+      if (i->pos_x != player_player.pos_x || i->pos_y != player_player.pos_y)
         continue;
       player_items.erase(i);
-      player_info.AddPoint();
+      player_player.AddPoint();
       break;
     }
 
@@ -66,27 +71,26 @@ int main(int argc, char *argv[]) {
     // 코인을 받을 다음 플레이어 선정
     int next_player = rand() % (set_player.size() - 1);
     // 현재 플레이어에게 코인이 가지 않도록
-    if (next_player >= player_no)
+    if (next_player >= player_nth)
       next_player++;
     // 다음 플레이어 정보
     vector<Item> next_player_items = map_player_Items[next_player];
-    PlayerInfo next_player_info = map_player_PlayerInfo[next_player];
+    Player next_player_player = map_player_Player[next_player];
     // 다음 코인 위치
     int next_coin_x, next_coin_y;
     do {
       next_coin_x = rand() % TILE_COL;
       next_coin_y = rand() % TILE_ROW;
-    } while (next_player_info.pos_x == next_coin_x &&
-             next_player_info.pos_y == next_coin_y);
+    } while (next_player_player.pos_x == next_coin_x &&
+             next_player_player.pos_y == next_coin_y);
     // 코인 생성
     next_player_items.push_back(Item(next_coin_x, next_coin_y));
 
     // 그룹 내 플레이어에게 업데이트 정보 전송
-    g_GameProxy.SendPlayerInfo(g_groupHostID,
-                               RmiContext::FastEncryptedReliableSend, player_no,
-                               player_info);
+    g_GameProxy.SendPlayer(g_groupHostID, RmiContext::FastEncryptedReliableSend,
+                           player_nth, player_player);
     g_GameProxy.SendItems(g_groupHostID, RmiContext::FastEncryptedReliableSend,
-                          player_no, player_items);
+                          player_nth, player_items);
     g_GameProxy.SendItems(g_groupHostID, RmiContext::FastEncryptedReliableSend,
                           next_player, next_player_items);
 
@@ -94,39 +98,47 @@ int main(int argc, char *argv[]) {
   };
 
   // set a routine which is executed when a client is joining.
-  // clientInfo has the client info including its HostID.
+  // clientInfo has the client player including its HostID.
   srv->OnClientJoin = [&srv](CNetClientInfo *clientInfo) {
     HostID remote = clientInfo->m_HostID;
 
     // 게임 참여 인원 확인
     if (set_player.size() >= MAX_PLAYERS) {
       srv->CloseConnection(remote);
+      cout << "Players full, Bye~ PlayerID " << (int)remote << '\n';
       return;
     }
 
     // p2p 그룹에 추가
     srv->JoinP2PGroup(remote, g_groupHostID);
+    cout << "PlayerID " << (int)remote << " joined group " << (int)g_groupHostID
+         << '\n';
 
     // 플레이어 번호 부여(0부터!), 게임 관리자 클래스로 분리 필요
-    int player_no = -1;
+    int player_nth = -1;
     for (int i = 0; i < MAX_PLAYERS; ++i) {
       if (set_player.find(i) != set_player.end())
         continue;
-      player_no = i;
+      player_nth = i;
     }
-    if (player_no == -1)
+    if (player_nth == -1)
       return;
 
     // 플레이어 정보 등록, 게임 관리자 클래스로 분리 필요
-    set_player.insert(player_no);
-    map_HostID_player[remote] = player_no;
-    map_player_Items.insert({player_no, vector<Item>()});
-    map_player_PlayerInfo.insert({player_no, PlayerInfo()});
+    set_player.insert(player_nth);
+    map_HostID_player[remote] = player_nth;
+    map_player_Items.insert({player_nth, vector<Item>()});
+    map_player_Player.insert({player_nth, Player()});
+
+    cout << "Player " << player_nth << "["
+         << map_player_Player[player_nth].pos_x << ','
+         << map_player_Player[player_nth].pos_y << "] \n";
 
     // 플레이어 2명 이상 시 게임 시작
     if (set_player.size() >= 2) {
       game_started = true;
-      map_player_Items[0].push_back(Item());
+      map_player_Items[0].push_back(Item(0, 0));
+      cout << "game started!\n";
     }
   };
 
@@ -137,13 +149,15 @@ int main(int argc, char *argv[]) {
 
     // p2p 그룹에서 삭제
     srv->LeaveP2PGroup(remote, g_groupHostID);
+    cout << "PlayerID " << (int)remote << " leaved group " << (int)g_groupHostID
+         << '\n';
 
     // 플레이어 정보 삭제
-    int player_no = map_HostID_player[remote];
-    set_player.erase(player_no);
+    int player_nth = map_HostID_player[remote];
+    set_player.erase(player_nth);
     map_HostID_player.erase(remote);
-    map_player_Items.erase(player_no);
-    map_player_PlayerInfo.erase(player_no);
+    map_player_Items.erase(player_nth);
+    map_player_Player.erase(player_nth);
 
     // 플레이어 2명 미만 시 게임 종료
     if (set_player.size() < 2) {
@@ -152,8 +166,8 @@ int main(int argc, char *argv[]) {
       // 기존 플레이어 정보 초기화
       for (set<int>::const_iterator i = set_player.begin();
            i != set_player.end(); ++i) {
-        map_player_Items[player_no] = vector<Item>();
-        map_player_PlayerInfo[player_no] = PlayerInfo();
+        map_player_Items[player_nth] = vector<Item>();
+        map_player_Player[player_nth] = Player();
       }
     }
 
@@ -163,9 +177,9 @@ int main(int argc, char *argv[]) {
       g_GameProxy.SendItems(g_groupHostID,
                             RmiContext::FastEncryptedReliableSend, *i,
                             map_player_Items[*i]);
-      g_GameProxy.SendPlayerInfo(g_groupHostID,
-                                 RmiContext::FastEncryptedReliableSend, *i,
-                                 map_player_PlayerInfo[*i]);
+      g_GameProxy.SendPlayer(g_groupHostID,
+                             RmiContext::FastEncryptedReliableSend, *i,
+                             map_player_Player[*i]);
     }
   };
 

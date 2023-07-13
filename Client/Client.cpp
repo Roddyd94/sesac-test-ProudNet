@@ -16,18 +16,6 @@ calling a function which resides other process.
 */
 TestGame::Proxy g_GameProxy;
 
-// 내 플레이어 번호
-int my_player_no = -1;
-
-int cur_x = CENTER_X, cur_y = CENTER_Y;
-
-int points[MAX_PLAYERS] = {
-    0,
-};
-char maps[MAX_PLAYERS][TILE_ROW][TILE_COL] = {
-    ' ',
-};
-
 int main(int argc, char *argv[]) {
   // Network client object.
   shared_ptr<CNetClient> netClient(CNetClient::Create());
@@ -39,42 +27,53 @@ int main(int argc, char *argv[]) {
   // changed if another P2P peer joined.
   HostID recentP2PGroupHostID = HostID_None;
 
+  // 게임 정보 초기화
+  ClientGameManager &client_game_manager = ClientGameManager::get_instance();
+  ClientUI &client_ui = ClientUI::get_instance();
+
   // 내 정보 수신 이벤트 처리 함수
-  g_GameStub.WhoYouAre_Function = [] PARAM_TestGame_WhoYouAre {
-    my_player_no = player_no;
-    return true;
-  };
+  g_GameStub.WhoYouAre_Function =
+      [&client_game_manager] PARAM_TestGame_WhoYouAre {
+        client_game_manager.my_nth = player_nth;
+        return true;
+      };
 
   // 서버 아이템 정보 전송 이벤트 처리 함수
-  g_GameStub.SendItems_Function = [] PARAM_TestGame_SendItems {
-    for (auto i = items.begin(); i != items.end(); ++i) {
-      maps[player_no][i->pos_x][i->pos_y] = '$';
-    }
-    return true;
-  };
+  g_GameStub.SendItems_Function =
+      [&client_game_manager] PARAM_TestGame_SendItems {
+        for (auto i = items.begin(); i != items.end(); ++i) {
+          client_game_manager.map_array[player_nth][i->pos_x][i->pos_y] = '$';
+        }
+        return true;
+      };
 
   // 서버 플레이어 정보 전송 이벤트 처리 함수
-  g_GameStub.SendPlayerInfo_Function = [] PARAM_TestGame_SendPlayerInfo {
-    maps[player_no][cur_x][cur_y] = ' ';
+  g_GameStub.SendPlayer_Function =
+      [&client_game_manager] PARAM_TestGame_SendPlayer {
+        ClientPlayer updated_player =
+            client_game_manager.player_array[player_nth];
+        client_game_manager.map_array[player_nth][updated_player.last_x]
+                                     [updated_player.last_y] = ' ';
 
-    // 점수
-    points[player_no] = info.points;
+        // 점수
+        updated_player = player;
 
-    maps[player_no][info.pos_x][info.pos_y] = '@';
-    cur_x = info.pos_x;
-    cur_y = info.pos_y;
+        client_game_manager.map_array[player_nth][player.pos_x][player.pos_y] =
+            '@';
+        updated_player.last_x = player.pos_x;
+        updated_player.last_y = player.pos_y;
 
-    return true;
-  };
+        return true;
+      };
 
   // set a routine which is run when the server connection attempt
   // is success or failed.
-  netClient->OnJoinServerComplete = [&](ErrorInfo *info,
+  netClient->OnJoinServerComplete = [&](ErrorInfo *player,
                                         const ByteArray &replyFromServer) {
     // as here is running in 2nd thread, lock is needed for console print.
     CriticalSectionLock lock(g_critSec, true);
 
-    if (info->m_errorType == ErrorType_Ok) {
+    if (player->m_errorType == ErrorType_Ok) {
       // connection successful.
       printf("Succeed to connect server. Allocated hostID=%d\n",
              netClient->GetLocalHostID());
@@ -128,23 +127,8 @@ int main(int argc, char *argv[]) {
   Proud::Thread workerThread([&]() {
     while (keepWorkerThread) {
       system("cls");
-      for (int player = 0; player < MAX_PLAYERS; ++player) {
-        string s;
-        cout << "[" << (char)(my_player_no == player ? '*' : ' ') << "]Player "
-             << player + 1 << ":" << points[player];
-
-        for (int y = 0; y < TILE_ROW; ++y) {
-          cout << '\n';
-          for (int x = 0; x < TILE_COL; ++x) {
-            cout << "[ " << maps[player][x][y] << " ]";
-          }
-        }
-
-        cout << '\n';
-        cout << '\n';
-      }
-
-      Proud::Sleep(100);
+      client_ui.PrintGame(client_game_manager);
+      Proud::Sleep(20);
 
       // process received RMI and events.
       netClient->FrameMove();
@@ -154,21 +138,40 @@ int main(int argc, char *argv[]) {
   workerThread.Start();
 
   while (keepWorkerThread) {
-    char key;
+    bool pressed_right_key = false;
+    cout << "thread test";
+    int key;
     // get user input
 #ifdef _WIN32
     while (!_kbhit())
       ; // wait for input
     key = _getch();
-
+    switch (key) {
+    case 'w':
+    case 'W':
+    case 's':
+    case 'S':
+    case 'a':
+    case 'A':
+    case 'd':
+    case 'D':
+      pressed_right_key = true;
+      break;
+    }
 #elif __unix__
+    cout << "unix test";
 
 #elif __linux__
+    cout << "unix test";
 
 #elif __APPLE__
 
 #endif
-    g_GameProxy.Move(HostID_Server, RmiContext::FastEncryptedReliableSend, key);
+    if (pressed_right_key)
+      g_GameProxy.Move(HostID_Server, RmiContext::FastEncryptedReliableSend,
+                       key);
+
+    Proud::Sleep(30);
   }
 
   // Waits for 2nd thread exits.
