@@ -41,9 +41,7 @@ int main(int argc, char *argv[]) {
   // 서버 아이템 정보 전송 이벤트 처리 함수
   g_GameStub.SendItemSet_Function =
       [&client_game_manager] PARAM_TestGame_SendItemSet {
-        for (auto i = item_set.begin(); i != item_set.end(); ++i) {
-          client_game_manager.map_array[player_nth][i->pos_x][i->pos_y] = '$';
-        }
+        client_game_manager.item_set_array[player_nth] = item_set;
         return true;
       };
 
@@ -52,14 +50,10 @@ int main(int argc, char *argv[]) {
       [&client_game_manager] PARAM_TestGame_SendPlayer {
         ClientPlayer updated_player =
             client_game_manager.player_array[player_nth];
-        client_game_manager.map_array[player_nth][updated_player.last_x]
-                                     [updated_player.last_y] = ' ';
 
         // 점수
         updated_player = player;
 
-        client_game_manager.map_array[player_nth][player.pos_x][player.pos_y] =
-            '@';
         updated_player.last_x = player.pos_x;
         updated_player.last_y = player.pos_y;
 

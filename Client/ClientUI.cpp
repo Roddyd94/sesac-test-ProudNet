@@ -20,7 +20,8 @@ void ClientUI::PrintGame(const ClientGameManager &game_manager) {
     for (int y = 0; y < TILE_ROW; ++y) {
       buffer << '\n';
       for (int x = 0; x < TILE_COL; ++x) {
-        buffer << "[ " << game_manager.map_array[player_nth][x][y] << " ]";
+        buffer << "[ " << game_manager.get_map_icon_at(player_nth, x, y)
+               << " ]";
       }
     }
 
