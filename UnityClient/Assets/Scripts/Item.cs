@@ -5,41 +5,88 @@ using UnityEngine;
 
 public class Item : MonoBehaviour
 {
-    public enum ItemType : byte { COIN = (byte)'$' };
-    public ItemType type;
-    public uint scale;
+    public int type;
+    public int scale;
     public int posX;
     public int posY;
+    public int centerX;
+    public int centerY;
     public Item() : this(0, 0)
     {
 
     }
-    public Item(int x, int y) : this(ItemType.COIN, 1, x, y)
+    public Item(Item other)
+    {
+        this.type = other.type;
+        this.posX = other.posX;
+        this.posY = other.posY;
+        this.scale = other.scale;
+    }
+    public Item(int x, int y) : this((int)'@', 1, x, y)
     {
 
     }
-    public Item(ItemType type, uint scale, int x, int y)
+    public Item(int type, int scale, int x, int y)
     {
         this.type = type;
-        this.scale = scale;
         this.posX = x;
         this.posY = y;
+        this.scale = scale;
+    }
+
+    public void SetItem(Item other)
+    {
+        this.type = other.type;
+        this.posX = other.posX;
+        this.posY = other.posY;
+        this.scale = other.scale;
     }
 
     public override string ToString()
     {
-        return string.Format("Item: {0} [{1},{2}], {3}", type, posX, posY, scale);
+        return string.Format("Item: {0} [{1},{2}], {3}", (char)type, posX, posY, scale);
     }
 
-    // Start is called before the first frame update
+    public override bool Equals(object obj)
+    {
+        if (this == obj) return true;
+        if (obj == null || obj is not Item)
+            return false;
+        Item other = obj as Item;
+
+        return this.type == other.type
+            && this.posX == other.posX
+            && this.posY == other.posY
+            && this.scale == other.scale;
+    }
+
+    public override int GetHashCode()
+    {
+        int result;
+        int c;
+        
+        c = this.type.GetHashCode();
+        result = c;
+
+        c = this.posX.GetHashCode();
+        result = 31 * result + c;
+
+        c = this.posY.GetHashCode();
+        result = 31 * result + c;
+
+        c = this.scale.GetHashCode();
+        result = 31 * result + c;
+
+        return result;
+    }
+
     void Start()
     {
-
+        
     }
 
-    // Update is called once per frame
     void Update()
     {
-
+        this.transform.position = new Vector3(centerX + posX - 1, centerY + posY - 1, 0);
     }
 }

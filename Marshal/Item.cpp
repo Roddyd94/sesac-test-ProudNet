@@ -2,9 +2,9 @@
 
 Item::Item() : Item(0, 0) {}
 
-Item::Item(int x, int y) : Item(Item::ItemType::COIN, 1, x, y) {}
+Item::Item(int x, int y) : Item((int)'@', 1, x, y) {}
 
-Item::Item(Item::ItemType type, uint32_t scale, int x, int y)
+Item::Item(int type, int scale, int x, int y)
     : type(type), scale(scale), pos_x(x), pos_y(y) {}
 
 bool operator<(const Item &l, const Item &r) {
@@ -14,15 +14,12 @@ bool operator<(const Item &l, const Item &r) {
 }
 namespace Proud {
 inline CMessage &operator>>(CMessage &m, Item &item) {
-  int8_t temp_type;
-  m >> temp_type >> item.scale >> item.pos_x >> item.pos_y;
-  item.type = (Item::ItemType)temp_type;
+  m >> item.type >> item.scale >> item.pos_x >> item.pos_y;
   return m;
 }
 
 inline CMessage &operator<<(CMessage &m, const Item &item) {
-  const int8_t temp_type = (int8_t)item.type;
-  m << temp_type << item.scale << item.pos_x << item.pos_y;
+  m << item.type << item.scale << item.pos_x << item.pos_y;
 
   return m;
 }
@@ -46,8 +43,7 @@ inline CMessage &operator<<(CMessage &m, const std::set<Item> &item_set) {
   int size = (int)item_set.size();
   m << size;
 
-  for (std::set<Item>::iterator i = item_set.begin(); i != item_set.end();
-       i++) {
+  for (std::set<Item>::iterator i = item_set.begin(); i != item_set.end(); i++) {
     m << (*i);
   }
   return m;

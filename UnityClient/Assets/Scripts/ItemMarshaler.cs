@@ -2,6 +2,7 @@ using Nettention.Proud;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unity.Logging;
 
 using static Item;
 
@@ -9,51 +10,52 @@ namespace TestGame
 {
     public class ItemMarshaler : Marshaler
     {
-        public static bool Read(Message msg, out HashSet<Item> items)
+        public static bool Read(Message msg, out Item item)
         {
-            int size = 0;
-            items = null;
+            item = new Item();
 
-            if (!msg.ReadScalar(ref size))
+            if (msg.Read(out item.type)
+                && msg.Read(out item.scale)
+                && msg.Read(out item.posX)
+                && msg.Read(out item.posY))
             {
-                return false;
+                return true;
             }
+            return false;
+        }
+
+        public static void Write(Message msg, Item item)
+        {
+            msg.Write(item.type);
+            msg.Write(item.scale);
+            msg.Write(item.posX);
+            msg.Write(item.posY);
+        }
+        public static void Read(Message msg, out HashSet<Item> items)
+        {
+            items = new HashSet<Item>();
+
+            int size = 0;
+            msg.Read(out size);
+
+            Log.Debug("set size: {0}", size);
+
             for (int i = 0; i < size; ++i)
             {
-                Item item = Resources.Load<Item>("Prefabs/Item");
-                byte type = 0;
-                if (!msg.Read(out type))
-                {
-                    return false;
-                }
-                item.type = (ItemType)type;
-                if (!msg.Read(out item.scale))
-                {
-                    return false;
-                }
-                if (!msg.Read(out item.posX))
-                {
-                    return false;
-                }
-                if (!msg.Read(out item.posY))
-                {
-                    return false;
-                }
+                Item item = new Item();
+                Read(msg, out item);
+                Log.Debug("{0}", item.ToString());
                 items.Add(item);
             }
-            return true;
         }
 
         public static void Write(Message msg, HashSet<Item> items)
         {
-            msg.WriteScalar(items.Count);
-            Item[] itemArray = new Item[items.Count];
-            for (int i = 0; i < items.Count; ++i)
+            msg.Write((int)items.Count);
+
+            foreach (var item in items)
             {
-                msg.Write((byte)itemArray[i].type);
-                msg.Write(itemArray[i].scale);
-                msg.Write(itemArray[i].posX);
-                msg.Write(itemArray[i].posY);
+                Write(msg, item);
             }
         }
     }

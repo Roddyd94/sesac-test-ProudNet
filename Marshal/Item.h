@@ -4,14 +4,13 @@
 
 class Item {
 public:
-  enum ItemType : int8_t { COIN = '$' };
-  ItemType type;
-  uint32_t scale;
+  int type;
+  int scale;
   int pos_x;
   int pos_y;
   Item();
   Item(int x, int y);
-  Item(ItemType type, uint32_t scale, int x, int y);
+  Item(int type, int scale, int x, int y);
   friend bool operator<(const Item &l, const Item &r);
 };
 

@@ -9,24 +9,15 @@ namespace TestGame
     {
         public static bool Read(Message msg, out Player player)
         {
-            player = null;
-            if (!msg.Read(out player.nth))
+            player = new Player();
+            if (msg.Read(out player.nth)
+                && msg.Read(out player.points)
+                && msg.Read(out player.posX)
+                && msg.Read(out player.posY))
             {
-                return false;
+                return true;
             }
-            if (!msg.Read(out player.points))
-            {
-                return false;
-            }
-            if (!msg.Read(out player.posX))
-            {
-                return false;
-            }
-            if (!msg.Read(out player.posY))
-            {
-                return false;
-            }
-            return true;
+            return false;
         }
 
         public static void Write(Message msg, Player player)

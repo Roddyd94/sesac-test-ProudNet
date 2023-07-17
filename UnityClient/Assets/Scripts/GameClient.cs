@@ -59,7 +59,7 @@ public class GameClient : MonoBehaviour
         stub.SendPlayer = (HostID remote, RmiContext rmiContext, int player_nth, Player player) =>
         {
             Log.Debug(string.Format("SendPlayer"));
-            gameManager.SetPlayer(player_nth, player);
+            gameManager.SetPlayerNth(player_nth, player);
             return true;
         };
 
