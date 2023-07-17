@@ -1,4 +1,6 @@
 rename cs(Proud::String, System.String);
+rename cs(std::set<Item>, HashSet<Item>);
+rename cs(int8_t, byte);
 
 global TestGame 1000
 {

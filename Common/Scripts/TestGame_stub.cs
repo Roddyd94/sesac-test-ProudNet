@@ -16,8 +16,8 @@ namespace TestGame
 public AfterRmiInvocationDelegate AfterRmiInvocation = delegate(Nettention.Proud.AfterRmiSummary summary) {};
 public BeforeRmiInvocationDelegate BeforeRmiInvocation = delegate(Nettention.Proud.BeforeRmiSummary summary) {};
 
-		public delegate bool SendItemSetDelegate(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, int player_nth, std.set<Item> item_set);  
-		public SendItemSetDelegate SendItemSet = delegate(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, int player_nth, std.set<Item> item_set)
+		public delegate bool SendItemSetDelegate(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, int player_nth, HashSet<Item> item_set);  
+		public SendItemSetDelegate SendItemSet = delegate(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, int player_nth, HashSet<Item> item_set)
 		{ 
 			return false;
 		};
@@ -26,8 +26,8 @@ public BeforeRmiInvocationDelegate BeforeRmiInvocation = delegate(Nettention.Pro
 		{ 
 			return false;
 		};
-		public delegate bool MoveDelegate(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, int8_t key);  
-		public MoveDelegate Move = delegate(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, int8_t key)
+		public delegate bool MoveDelegate(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, byte key);  
+		public MoveDelegate Move = delegate(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, byte key)
 		{ 
 			return false;
 		};
@@ -92,7 +92,7 @@ __fail:
         ctx.compressMode = pa.CompressMode;
 
         int player_nth; Nettention.Proud.Marshaler.Read(__msg,out player_nth);	
-std.set<Item> item_set; Nettention.Proud.Marshaler.Read(__msg,out item_set);	
+HashSet<Item> item_set; Nettention.Proud.Marshaler.Read(__msg,out item_set);	
 core.PostCheckReadMessage(__msg, RmiName_SendItemSet);
         if(enableNotifyCallFromStub==true)
         {
@@ -195,7 +195,7 @@ parameterString+=player.ToString()+",";
         ctx.encryptMode = pa.EncryptMode;
         ctx.compressMode = pa.CompressMode;
 
-        int8_t key; Nettention.Proud.Marshaler.Read(__msg,out key);	
+        byte key; Nettention.Proud.Marshaler.Read(__msg,out key);	
 core.PostCheckReadMessage(__msg, RmiName_Move);
         if(enableNotifyCallFromStub==true)
         {

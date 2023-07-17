@@ -13,7 +13,7 @@ namespace TestGame
 {
 	internal class Proxy:Nettention.Proud.RmiProxy
 	{
-public bool SendItemSet(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, int player_nth, std.set<Item> item_set)
+public bool SendItemSet(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, int player_nth, HashSet<Item> item_set)
 {
 	using (Nettention.Proud.FreeListPopper<Nettention.Proud.Message> freeList = new Nettention.Proud.FreeListPopper<Nettention.Proud.Message>())
 		{
@@ -33,7 +33,7 @@ public bool SendItemSet(Nettention.Proud.HostID remote,Nettention.Proud.RmiConte
         }
 }
 
-public bool SendItemSet(Nettention.Proud.HostID[] remotes,Nettention.Proud.RmiContext rmiContext, int player_nth, std.set<Item> item_set)
+public bool SendItemSet(Nettention.Proud.HostID[] remotes,Nettention.Proud.RmiContext rmiContext, int player_nth, HashSet<Item> item_set)
 {
 	using (Nettention.Proud.FreeListPopper<Nettention.Proud.Message> freeList = new Nettention.Proud.FreeListPopper<Nettention.Proud.Message>())
 {
@@ -85,7 +85,7 @@ Nettention.Proud.Marshaler.Write(__msg, player);
 		RmiName_SendPlayer, Common.SendPlayer);
         }
 }
-public bool Move(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, int8_t key)
+public bool Move(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiContext, byte key)
 {
 	using (Nettention.Proud.FreeListPopper<Nettention.Proud.Message> freeList = new Nettention.Proud.FreeListPopper<Nettention.Proud.Message>())
 		{
@@ -104,7 +104,7 @@ public bool Move(Nettention.Proud.HostID remote,Nettention.Proud.RmiContext rmiC
         }
 }
 
-public bool Move(Nettention.Proud.HostID[] remotes,Nettention.Proud.RmiContext rmiContext, int8_t key)
+public bool Move(Nettention.Proud.HostID[] remotes,Nettention.Proud.RmiContext rmiContext, byte key)
 {
 	using (Nettention.Proud.FreeListPopper<Nettention.Proud.Message> freeList = new Nettention.Proud.FreeListPopper<Nettention.Proud.Message>())
 {
