@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 using Unity.Logging;
 using Nettention.Proud;
 using TestGame;
@@ -14,6 +15,7 @@ public class GameClient : MonoBehaviour
     bool connected = false;
     HostID groupHostID = HostID.HostID_None;
     public GameManager gameManager;
+    public TextMeshProUGUI[] score;
 
     // Start is called before the first frame update
     void Start()
@@ -60,6 +62,7 @@ public class GameClient : MonoBehaviour
         {
             Log.Debug(string.Format("SendPlayer"));
             gameManager.SetPlayerNth(player_nth, player);
+            score[player_nth].text = player.points.ToString();
             return true;
         };
 

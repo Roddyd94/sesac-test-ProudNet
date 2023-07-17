@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     public Item itemPrefab;
     private int myPlayerNth;
     private Player[] players;
+    private HashSet<Item>[] itemSetArray;
     // Start is called before the first frame update
     public void SetPlayerNth(int player_nth, Player player)
     {
@@ -34,26 +35,29 @@ public class GameManager : MonoBehaviour
     }
     public void SetPlayerItems(int player_nth, HashSet<Item> playerItemHashSet)
     {
-        foreach (var itemPrefab in Object.FindObjectsOfType<Item>())
+        List<Item> items_to_delete = new List<Item>();
+        foreach (var item in itemSetArray[player_nth])
         {
-            Destroy(itemPrefab.gameObject);
+            items_to_delete.Add(item);
         }
+
+        while (items_to_delete.Count > 0)
+        {
+            Item item = items_to_delete[items_to_delete.Count - 1];
+            items_to_delete.RemoveAt(items_to_delete.Count - 1);
+            Destroy(item.gameObject);
+        }
+
+        itemSetArray[player_nth] = new HashSet<Item>();
 
         foreach (var item in playerItemHashSet)
         {
             Item new_item = Instantiate(itemPrefab, new Vector2(0, 0), Quaternion.identity);
+            
             new_item.SetItem(item);
+            new_item.SetCenterXY(player_nth);
 
-            if (player_nth == 0)
-            {
-                new_item.centerX = -4;
-                new_item.centerY = 3;
-            }
-            else if (player_nth == 1)
-            {
-                new_item.centerX = 4;
-                new_item.centerY = 3;
-            }
+            itemSetArray[player_nth].Add(new_item);
         }
     }
     public Player GetPlayer(int player_nth)
@@ -71,6 +75,10 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         players = new Player[2];
+        itemSetArray = new HashSet<Item>[2];
+
+        itemSetArray[0] = new HashSet<Item>();
+        itemSetArray[1] = new HashSet<Item>();
     }
     void Update()
     {

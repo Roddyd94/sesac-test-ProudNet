@@ -160,6 +160,7 @@ int main(int argc, char *argv[]) {
     if (set_player.size() >= 2) {
       game_started = true;
       map_player_Items[0].insert(Item(0, 0));
+      map_player_Items[0].insert(Item(1, 0));
       g_GameProxy.SendItemSet(g_groupHostID,
                               RmiContext::FastEncryptedReliableSend, 0,
                               map_player_Items[0]);

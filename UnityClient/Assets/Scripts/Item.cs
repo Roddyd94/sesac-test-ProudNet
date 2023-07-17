@@ -42,6 +42,20 @@ public class Item : MonoBehaviour
         this.scale = other.scale;
     }
 
+    public void SetCenterXY(int playerNth)
+    {
+        if (playerNth == 0)
+        {
+            centerX = -4;
+            centerY = 3;
+        }
+        else if (playerNth == 1)
+        {
+            centerX = 4;
+            centerY = 3;
+        }
+    }
+
     public override string ToString()
     {
         return string.Format("Item: {0} [{1},{2}], {3}", (char)type, posX, posY, scale);
